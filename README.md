@@ -1,7 +1,7 @@
 # PayFast
 A basic, easy integration option for .NET implemenatations of PayFast
 
-I have used PayFast in a number of integrations, and always found myself rewriting something similar to this.
+I have used PayFast in a number of integrations, and always found myself rewriting something similar to this (based on some code found on PayFast's old site).
 
 This implementation addresses some of the pains of integrating with PayFast in an ASP.Net project. 
 It aims to be a simple and effective library that is very much plug-and-play.
