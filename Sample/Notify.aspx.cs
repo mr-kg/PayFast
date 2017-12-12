@@ -17,6 +17,7 @@ namespace Sample
     {
         protected void Page_Load(object sender, EventArgs e)
         {
+            // NOTE: May not have session state here, but it is ok with re-instantiation
             var settings = (Settings)Session["PFSettings"];
             var wrapper = (Wrapper)Session["PFWrapper"];
 
