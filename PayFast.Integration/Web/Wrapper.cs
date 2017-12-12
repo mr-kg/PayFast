@@ -16,9 +16,9 @@ namespace PayFast.Integration.Web
     /// This is a wrapper for the PayFast payment gateway. The PayFast process is as follows:
     /// <para>1 - A page in your site calls CreateTrans(...)</para>
     /// <para>2 - User redirected to PayFast to perform payment</para>
-    /// <para>3 - PayFast then POSTs to your PFMeta.URLNotify to validate and perform actions based on the outcome</para>
-    /// <para>4 - The PFMeta.URLNotify page must run the Validate(...) method in order to properly validate the transaction</para>
-    /// <para>4 - PayFast will then send the user back to PFMeta.URLReturn</para>
+    /// <para>3 - PayFast then POSTs to your Settings.URLNotify to validate and perform actions based on the outcome</para>
+    /// <para>4 - The Settings.URLNotify page must run the Validate(...) method in order to properly validate the transaction</para>
+    /// <para>4 - PayFast will then send the user back to Settings.URLReturn</para>
     /// </summary>
     public class Wrapper
     {
@@ -49,8 +49,8 @@ namespace PayFast.Integration.Web
                 if (!page.IsValid) return;
 
                 string site = settings.IsLive ? "https://www.payfast.co.za/eng/process?" : "https://sandbox.payfast.co.za/eng/process?";
-                string merchant_id = settings.IsLive ? settings.MerchantID : "10001056";
-                string merchant_key = settings.IsLive ? settings.MerchantKey : "28buhfgf99inw";
+                string merchant_id = settings.MerchantID;
+                string merchant_key = settings.MerchantKey;
 
                 // Build the query string for payment site
 
@@ -77,7 +77,7 @@ namespace PayFast.Integration.Web
         }
 
         /// <summary>
-        /// PF will POST to this page once a customer pays. It will be validated accordingly BEFORE redirecting to PFMeta.URLNotify.
+        /// PF will POST to this page once a customer pays. It will be validated accordingly BEFORE redirecting to Settings.URLNotify.
         /// This page need not have any output HTML, as it is never seen by an end-user
         /// </summary>
         /// <param name="meta"></param>
@@ -97,7 +97,7 @@ namespace PayFast.Integration.Web
             {
                 // Are we testing or making live payments
                 string site = settings.IsLive ? "https://www.payfast.co.za/eng/query/validate" : "https://sandbox.payfast.co.za/eng/query/validate";
-                string merchant_id = settings.IsLive ? settings.MerchantID : "10001056";
+                string merchant_id = settings.MerchantID;
 
                 // Get the posted variables. Exclude the signature (it must be excluded when we hash and also when we validate).
                 NameValueCollection arrPostedVariables = new NameValueCollection(); // We will use later to post data
