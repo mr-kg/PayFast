@@ -7,6 +7,7 @@ using System.Web.UI;
 using System.Web;
 using System.Collections.Specialized;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace PayFast.Integration.Web
 {
@@ -27,6 +28,7 @@ namespace PayFast.Integration.Web
         string strPostedVariables = "";
 
         List<string> _validSites;
+        Regex _upperUrlEncodeRegex = new Regex(@"%[a-f0-9]{2}");
 
         public Wrapper()
         {
@@ -54,20 +56,38 @@ namespace PayFast.Integration.Web
 
                 // Build the query string for payment site
 
-                StringBuilder str = new StringBuilder();
-                str.AppendFormat("merchant_id={0}", HttpUtility.UrlEncode(merchant_id));
-                str.AppendFormat("&merchant_key={0}", HttpUtility.UrlEncode(merchant_key));
-                str.AppendFormat("&return_url={0}", HttpUtility.UrlEncode(settings.URLReturn)); // Just thank the user and tell them you are processing their order (should already be done or take a few more seconds with ITN)
-                str.AppendFormat("&cancel_url={0}", HttpUtility.UrlEncode(settings.URLCancel)); // Just thank the user and tell them that they cancelled the order (encourage them to email you if they have problems paying
-                str.AppendFormat("&notify_url={0}", HttpUtility.UrlEncode(settings.URLNotify)); // Called once by the payment processor to validate
+                StringBuilder strHashed = new StringBuilder();
 
-                str.AppendFormat("&m_payment_id={0}", HttpUtility.UrlEncode(trans.OrderId));
-                str.AppendFormat("&amount={0}", HttpUtility.UrlEncode(trans.Amount.ToString()));
-                str.AppendFormat("&item_name={0}", HttpUtility.UrlEncode(trans.Name));
-                str.AppendFormat("&item_description={0}", HttpUtility.UrlEncode(trans.Description));
+                strHashed.AppendFormat("merchant_id={0}&", UrlEncodeUpper(merchant_id));
+                strHashed.AppendFormat("merchant_key={0}&", UrlEncodeUpper(merchant_key));
+                if (!string.IsNullOrEmpty(settings.URLReturn))
+                    strHashed.AppendFormat("return_url={0}&", UrlEncodeUpper(settings.URLReturn)); // Just thank the user and tell them you are processing their order (should already be done or take a few more seconds with ITN)
+                if (!string.IsNullOrEmpty(settings.URLCancel))
+                    strHashed.AppendFormat("cancel_url={0}&", UrlEncodeUpper(settings.URLCancel)); // Just thank the user and tell them that they cancelled the order (encourage them to email you if they have problems paying
+                if (!string.IsNullOrEmpty(settings.URLNotify))
+                    strHashed.AppendFormat("notify_url={0}&", UrlEncodeUpper(settings.URLNotify)); // Called once by the payment processor to validate
 
-                // Redirect to PayFast
-                ctx.Response.Redirect(site + str.ToString(), false);
+                if (!string.IsNullOrEmpty(trans.FirstName))
+                    strHashed.AppendFormat("name_first={0}&", UrlEncodeUpper(trans.FirstName));
+                if (!string.IsNullOrEmpty(trans.LastName))
+                    strHashed.AppendFormat("name_last={0}&", UrlEncodeUpper(trans.LastName));
+                if (!string.IsNullOrEmpty(trans.Email))
+                    strHashed.AppendFormat("email_address={0}&", UrlEncodeUpper(trans.Email));
+                if (!string.IsNullOrEmpty(trans.CellNumber))
+                    strHashed.AppendFormat("cell_number={0}&", UrlEncodeUpper(trans.CellNumber));
+
+                if (!string.IsNullOrEmpty(trans.OrderId))
+                    strHashed.AppendFormat("m_payment_id={0}&", UrlEncodeUpper(trans.OrderId));
+
+                strHashed.AppendFormat("amount={0}&", UrlEncodeUpper(trans.Amount.ToString()));
+                strHashed.AppendFormat("item_name={0}&", UrlEncodeUpper(trans.Name));
+
+                if (!string.IsNullOrEmpty(trans.Description))
+                    strHashed.AppendFormat("item_description={0}&", UrlEncodeUpper(trans.Description));
+
+                strHashed.AppendFormat("payment_method={0}", UrlEncodeUpper("cc")); // ToDo: Add payment methods
+
+                ctx.Response.Redirect($"{site}{strHashed.ToString()}&signature={GetMd5(strHashed.ToString())}".Trim(), false);
                 return;
             }
             catch (Exception ex)
@@ -203,5 +223,19 @@ namespace PayFast.Integration.Web
             }
         }
 
+        private string GetMd5(string input)
+        {
+            StringBuilder sb = new StringBuilder();
+            var hash = System.Security.Cryptography.MD5.Create().ComputeHash(Encoding.ASCII.GetBytes(input));
+            for (int i = 0; i < hash.Length; i++)
+                sb.Append(hash[i].ToString("x2"));
+            return sb.ToString();
+        }
+
+        private string UrlEncodeUpper(string input)
+        {
+            string value = HttpUtility.UrlEncode(input);
+            return _upperUrlEncodeRegex.Replace(value, m => m.Value.ToUpperInvariant());
+        }
     }
 }
