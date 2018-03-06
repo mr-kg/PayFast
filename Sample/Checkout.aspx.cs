@@ -17,18 +17,22 @@ namespace Sample
             var settings = new Settings()
             {
                 IsLive = false,
-                MerchantID = "x",
-                MerchantKey = "x",
-                URLCancel = "https://someurl.com/cancel",
-                URLNotify = "https://someurl.com/notify",
-                URLReturn = "https://someurl.com/return",
+                MerchantID = "X",
+                MerchantKey = "X",
+                URLCancel = "https://google.com",
+                URLNotify = "https://google.com",
+                URLReturn = "https://google.com"
             };
             var trans = new Transaction()
             {
                 Amount = 100M,
-                Description = "Test Item 1",
+                Description = "TestItem1",
                 Name = "Test",
-                OrderId = "1"
+                OrderId = "12256",
+                FirstName = "John",
+                LastName = "Doe",
+                Email = "john.doe@email.com",
+                CellNumber = "0821234567"
             };
 
             // Store wherever convenient

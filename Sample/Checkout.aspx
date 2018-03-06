@@ -10,7 +10,7 @@
     <form id="form1" runat="server">
         <h1>Checkout</h1>
         <div>
-            <asp:Button ID="btnPayNow" Text="Pay Now" OnClick="btnPayNow_Click"/>
+            <asp:Button ID="btnPayNow" runat="server" Text="Pay Now" OnClick="btnPayNow_Click"/>
         </div>
     </form>
 </body>
